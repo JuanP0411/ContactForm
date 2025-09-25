@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from dotenv import load_dotenv
 import os
@@ -9,6 +10,12 @@ import uvicorn
 load_dotenv()
 HUBSPOT_TOKEN = os.getenv("HUBSPOT_ACCESS_TOKEN")
 BASE_URL = os.getenv("BASE_URL")
+
+# CORS configuration from .env
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+CORS_METHODS = os.getenv("CORS_METHODS", "GET,POST,PUT,DELETE,OPTIONS").split(",")
+CORS_HEADERS = os.getenv("CORS_HEADERS", "*").split(",")
+
 if not HUBSPOT_TOKEN:
     raise ValueError("HUBSPOT_ACCESS_TOKEN not set in .env file")
 
@@ -42,6 +49,16 @@ class HubSpotService:
         return response.json()
 
 app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=CORS_METHODS,
+    allow_headers=CORS_HEADERS,
+)
+
 hubspot_service = HubSpotService(HUBSPOT_TOKEN)
 
 @app.post("/contacts")
