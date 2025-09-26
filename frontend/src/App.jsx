@@ -140,11 +140,19 @@ function App() {
         setMessage('Contact created successfully!')
         setFormData({ firstname: '', lastname: '', email: '' })
       } else {
-        const errorData = await response.json()
-        setMessage(`Error: ${errorData.detail || 'Failed to create contact'}`)
+        // Handle HTTP error responses
+        let errorMessage = 'Failed to create contact'
+
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.detail.message
+        } catch (parseError) {
+          errorMessage = response.statusText || errorMessage
+        }
+        setMessage(`Error: ${errorMessage}`)
       }
     } catch (error) {
-      setMessage(`Error: ${error.message}`)
+      setMessage(`Error: ${error.message || 'Network error occurred'}`)
     } finally {
       setIsSubmitting(false)
     }
